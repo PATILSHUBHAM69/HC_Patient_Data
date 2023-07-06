@@ -1,84 +1,13 @@
-package main
+package controllers
 
 import (
-	"log"
-	"net/http"
-
-	database "github.com/PATILSHUBHAM69/HC_Patient_Data/database"
-)
-
-func main() {
-	database.Connect()
-
-	// Start the server
-	log.Fatal(http.ListenAndServe(":8080", nil))
-
-	routes.patient_routes()
-
-}
-
-/*
-package main
-
-import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-// Patient struct represents a patient record
-type Patient struct {
-	ID             int    `json:"id"`
-	Name           string `json:"name"`
-	Age            int    `json:"age"`
-	Gender         string `json:"gender"`
-	Contact        string `json:"contact"`
-	MedicalHistory string `json:"medical_history"`
-}
-
-// Database connection parameters
-const (
-	dbDriver = "mysql"
-	dbUser   = "root"
-	dbPass   = "india@123"
-	dbName   = "database_name"
-)
-
-var db *sql.DB
-
-func main() {
-	// Initialize the database connection
-	initDB()
-
-	// Register endpoints
-	http.HandleFunc("/patients", createPatient)
-	http.HandleFunc("/patients/", getPatient)
-	http.HandleFunc("/patients/", updatePatient)
-	http.HandleFunc("/patients/", deletePatient)
-
-	// Start the server
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-func initDB() {
-	var err error
-	db, err = sql.Open(dbDriver, fmt.Sprintf("%s:%s@/%s", dbUser, dbPass, dbName))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Connected to the database")
-}
 
 func createPatient(w http.ResponseWriter, r *http.Request) {
 	// Parse the request body
@@ -238,4 +167,3 @@ func deletePatient(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Patient deleted successfully")
 }
-*/
