@@ -26,7 +26,7 @@ func Connect() {
 	fmt.Println("Connected to MySQL database!")
 
 	//Create Tabel
-	Create_Patient, err := db.Query("CREATE TABLE IF NOT EXISTS PatientDetails (id INT AUTO_INCREMENT PRIMARY KEY,name VARCHAR(80), age INT, gender VARCHAR(10), contact_no VARCHAR(255), medical_history TEXT );")
+	Create_Patient, err := db.Query("CREATE TABLE IF NOT EXISTS patientdetails (id INT AUTO_INCREMENT PRIMARY KEY,name VARCHAR(80), age INT, gender VARCHAR(10), contact VARCHAR(255), medical_history TEXT );")
 	if err != nil {
 		panic(err.Error())
 	}
