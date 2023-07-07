@@ -1,16 +1,32 @@
 package controllers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/PATILSHUBHAM69/HC_Patient_Data/models"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func createPatient(w http.ResponseWriter, r *http.Request) {
+var db *sql.DB
+
+func init() {
+	// Initialize the database connection
+	var err error
+	db, err = sql.Open("mysql", "root:india@123@tcp(localhost:3306)/hc_patient_data")
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Rest of the controller code...
+
+func CreatePatient(w http.ResponseWriter, r *http.Request) {
 	// Parse the request body
+	fmt.Println("hello")
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -25,16 +41,23 @@ func createPatient(w http.ResponseWriter, r *http.Request) {
 	medicalHistory := r.FormValue("medical_history")
 
 	// Perform data validation
+	patient := models.Patient{
+		Name:           name,
+		Age:            age,
+		Gender:         gender,
+		Contact:        contact,
+		MedicalHistory: medicalHistory,
+	}
 
 	// Insert the patient record into the database
-	stmt, err := db.Prepare("INSERT INTO patients (name, age, gender, contact, medical_history) VALUES (?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO PatientDetails (name, age, gender, contact_no, medical_history) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Exec(name, age, gender, contact, medicalHistory)
+	result, err := stmt.Exec(patient.Name, patient.Age, patient.Gender, patient.Contact, patient.MedicalHistory)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -47,26 +70,12 @@ func createPatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Store the patientID in the same table
-	updateStmt, err := db.Prepare("UPDATE patients SET id=? WHERE id=?")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer updateStmt.Close()
-
-	_, err = updateStmt.Exec(patientID, patientID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	// Return the patient ID as the response
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, "Patient created with ID: %d", patientID)
 }
 
-func getPatient(w http.ResponseWriter, r *http.Request) {
+func GetPatient(w http.ResponseWriter, r *http.Request) {
 	// Get the patient ID from the request URL
 	patientIDStr := r.URL.Path[len("/patients/"):]
 	patientID, err := strconv.Atoi(patientIDStr)
@@ -85,7 +94,7 @@ func getPatient(w http.ResponseWriter, r *http.Request) {
 
 	if rows.Next() {
 		// Extract patient details from the query result
-		var patient Patient
+		var patient models.Patient
 		err := rows.Scan(&patient.ID, &patient.Name, &patient.Age, &patient.Gender, &patient.Contact, &patient.MedicalHistory)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -100,7 +109,7 @@ func getPatient(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func updatePatient(w http.ResponseWriter, r *http.Request) {
+func UpdatePatient(w http.ResponseWriter, r *http.Request) {
 	// Get the patient ID from the request URL
 	patientIDStr := r.URL.Path[len("/patients/"):]
 	patientID, err := strconv.Atoi(patientIDStr)
@@ -123,6 +132,16 @@ func updatePatient(w http.ResponseWriter, r *http.Request) {
 	contact := r.FormValue("contact")
 	medicalHistory := r.FormValue("medical_history")
 
+	// Create a new patient instance
+	patient := models.Patient{
+		ID:             patientID,
+		Name:           name,
+		Age:            age,
+		Gender:         gender,
+		Contact:        contact,
+		MedicalHistory: medicalHistory,
+	}
+
 	// Update the patient record in the database
 	stmt, err := db.Prepare("UPDATE patients SET name=?, age=?, gender=?, contact=?, medical_history=? WHERE id=?")
 	if err != nil {
@@ -131,7 +150,7 @@ func updatePatient(w http.ResponseWriter, r *http.Request) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(name, age, gender, contact, medicalHistory, patientID)
+	_, err = stmt.Exec(patient.Name, patient.Age, patient.Gender, patient.Contact, patient.MedicalHistory, patient.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -141,13 +160,18 @@ func updatePatient(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Patient updated successfully")
 }
 
-func deletePatient(w http.ResponseWriter, r *http.Request) {
+func DeletePatient(w http.ResponseWriter, r *http.Request) {
 	// Get the patient ID from the request URL
 	patientIDStr := r.URL.Path[len("/patients/"):]
 	patientID, err := strconv.Atoi(patientIDStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	// Create a new patient instance with only the ID field set
+	patient := models.Patient{
+		ID: patientID,
 	}
 
 	// Delete the patient record from the database
@@ -158,7 +182,7 @@ func deletePatient(w http.ResponseWriter, r *http.Request) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(patientID)
+	_, err = stmt.Exec(patient.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
