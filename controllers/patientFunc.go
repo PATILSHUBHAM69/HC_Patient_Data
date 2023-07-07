@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/PATILSHUBHAM69/HC_Patient_Data/models"
 	_ "github.com/go-sql-driver/mysql"
@@ -330,13 +329,19 @@ func UpdatePatient(w http.ResponseWriter, r *http.Request) {
 // }
 
 func DeletePatient(w http.ResponseWriter, r *http.Request) {
-	// Get the patient ID from the request URL
-	patientIDStr := r.URL.Path[len("/patients/"):]
-	patientID, err := strconv.Atoi(patientIDStr)
+	// Parse the request body JSON
+	var requestBody struct {
+		PatientID int `json:"patient_id"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	// Use the patient ID from the request body
+	patientID := requestBody.PatientID
 
 	// Create a new patient instance with only the ID field set
 	patient := models.Patient{
@@ -344,7 +349,7 @@ func DeletePatient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the patient record from the database
-	stmt, err := db.Prepare("DELETE FROM patients WHERE id=?")
+	stmt, err := db.Prepare("DELETE FROM PatientDetails WHERE id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -360,3 +365,35 @@ func DeletePatient(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Patient deleted successfully")
 }
+
+// func DeletePatient(w http.ResponseWriter, r *http.Request) {
+// 	// Get the patient ID from the request URL
+// 	patientIDStr := r.URL.Path[len("/patients/"):]
+// 	patientID, err := strconv.Atoi(patientIDStr)
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	// Create a new patient instance with only the ID field set
+// 	patient := models.Patient{
+// 		ID: patientID,
+// 	}
+
+// 	// Delete the patient record from the database
+// 	stmt, err := db.Prepare("DELETE FROM patients WHERE id=?")
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+// 	defer stmt.Close()
+
+// 	_, err = stmt.Exec(patient.ID)
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	w.WriteHeader(http.StatusOK)
+// 	fmt.Fprintf(w, "Patient deleted successfully")
+// }
