@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Management System</title>
+    <style>
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Patient Management System</h1>
+
+        <h2>Create Patient</h2>
+        <input type="text" id="name" placeholder="Name">
+        <input type="text" id="age" placeholder="Age">
+        <select id="gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+        <input type="text" id="contact" placeholder="Contact">
+        <input type="text" id="medical_history" placeholder="Medical History">
+        <button onclick="createPatient()">Create</button>
+
+        <h2>Get Patient</h2>
+        <input type="text" id="get_patient_id" placeholder="Patient ID">
+        <button onclick="getPatient()">Get</button>
+        <div id="patient_details"></div>
+
+        <h2>Update Patient</h2>
+        <input type="text" id="update_patient_id" placeholder="Patient ID">
+        <input type="text" id="update_name" placeholder="Name">
+        <input type="text" id="update_age" placeholder="Age">
+        <select id="update_gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+        <input type="text" id="update_contact" placeholder="Contact">
+        <input type="text" id="update_medical_history" placeholder="Medical History">
+        <button onclick="updatePatient()">Update</button>
+
+
+        <h2>Delete Patient</h2>
+        <input type="text" id="delete_patient_id" placeholder="Patient ID">
+        <button onclick="deletePatient()">Delete</button>
+    </div>
+
+    <script>
+        function createPatient() {
+            const name = document.getElementById("name").value;
+            const age = document.getElementById("age").value;
+            const gender = document.getElementById("gender").value;
+            const contact = document.getElementById("contact").value;
+            const medicalHistory = document.getElementById("medical_history").value;
+
+            const data = {
+                name: name,
+                age: age,
+                gender: gender,
+                contact: contact,
+                medical_history: medicalHistory
+            };
+
+            fetch("/create_patient", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.text())
+            .then(result => {
+                console.log(result);
+                alert(result);
+            })
+            .catch(error => {
+                console.error(error);
+                alert("An error occurred.");
+            });
+        }
+
+        function getPatient() {
+            const patientID = document.getElementById("get_patient_id").value;
+
+            fetch(`/get_patient?id=${patientID}`)
+            .then(response => response.json())
+            .then(patient => {
+                const patientDetails = document.getElementById("patient_details");
+                if (patient && patient.id) {
+                    patientDetails.innerHTML = `<strong>ID:</strong> ${patient.id}<br>
+                                                <strong>Name:</strong> ${patient.name}<br>
+                                                <strong>Age:</strong> ${patient.age}<br>
+                                                <strong>Gender:</strong> ${patient.gender}<br>
+                                                <strong>Contact:</strong> ${patient.contact}<br>
+                                                <strong>Medical History:</strong> ${patient.medical_history}`;
+                } else {
+                    patientDetails.innerHTML = "Patient not found.";
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert("An error occurred.");
+            });
+        }
+
+        function updatePatient() {
+            const patientID = document.getElementById("update_patient_id").value;
+            const name = document.getElementById("update_name").value;
+            const age = document.getElementById("update_age").value;
+            const gender = document.getElementById("update_gender").value;
+            const contact = document.getElementById("update_contact").value;
+            const medicalHistory = document.getElementById("update_medical_history").value;
+
+            const data = {
+                name: name,
+                age: age,
+                gender: gender,
+                contact: contact,
+                medical_history: medicalHistory
+            };
+
+            fetch(`/update_patient?id=${patientID}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.text())
+            .then(result => {
+                console.log(result);
+                alert(result);
+            })
+            .catch(error => {
+                console.error(error);
+                alert("An error occurred.");
+            });
+        }
+
+
+
+        function deletePatient() {
+            const patientID = document.getElementById("delete_patient_id").value;
+
+            fetch(`/delete_patient?id=${patientID}`, {
+                method: "DELETE"
+            })
+            .then(response => response.text())
+            .then(result => {
+                console.log(result);
+                alert(result);
+            })
+            .catch(error => {
+                console.error(error);
+                alert("An error occurred.");
+            });
+        }
+    </script>
+</body>
+</html>
